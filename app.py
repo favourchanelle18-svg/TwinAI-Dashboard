@@ -56,7 +56,7 @@ page = st.sidebar.radio(
 # HERO
 # --------------------
 
-st.image("assets/banner.jpg", use_container_width=True)
+st.title("🧠 TwinAI")
 
 st.markdown(
     '<div class="big-title">TwinAI</div>',
