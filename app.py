@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
 st.set_page_config(
     page_title="TwinAI",
@@ -9,7 +8,7 @@ st.set_page_config(
 )
 
 # --------------------
-# CUSTOM STYLING
+# STYLE
 # --------------------
 
 st.markdown("""
@@ -19,21 +18,14 @@ st.markdown("""
     background-color: #0E1117;
 }
 
-.metric-card {
-    background-color: #1c1f26;
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-}
-
 .big-title {
-    font-size: 50px;
+    font-size: 55px;
     font-weight: bold;
 }
 
 .subtitle {
-    color: grey;
     font-size:18px;
+    color:gray;
 }
 
 </style>
@@ -55,13 +47,13 @@ page = st.sidebar.radio(
     "Navigation",
     [
         "Dashboard",
-        "Digital Twin",
-        "Predictions"
+        "My Twin",
+        "Future Simulator"
     ]
 )
 
 # --------------------
-# HERO IMAGE
+# HERO
 # --------------------
 
 st.image("assets/banner.jpg", use_container_width=True)
@@ -72,7 +64,7 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="subtitle">Your Personal Digital Twin Dashboard</div>',
+    '<div class="subtitle">Build your digital twin and predict your future performance.</div>',
     unsafe_allow_html=True
 )
 
@@ -84,151 +76,100 @@ st.write("")
 
 if page == "Dashboard":
 
-    c1, c2, c3, c4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
 
-    c1.metric("Productivity", "88%")
-    c2.metric("Focus", "91%")
-    c3.metric("Wellness", "85%")
-    c4.metric("Burnout Risk", "12%")
+    col1.metric("Productivity", "88%")
+    col2.metric("Focus", "91%")
+    col3.metric("Energy", "85%")
+    col4.metric("Burnout Risk", "12%")
 
     st.divider()
 
-    fig = px.line(
-        df,
-        x="Date",
-        y=["Study", "Sleep", "Mood"],
-        title="Life Performance Trends"
-    )
+    st.subheader("Weekly Data")
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        fig2 = px.bar(
-            df,
-            x="Date",
-            y="Study",
-            title="Study Hours"
-        )
-
-        st.plotly_chart(
-            fig2,
-            use_container_width=True
-        )
-
-    with col2:
-        fig3 = px.bar(
-            df,
-            x="Date",
-            y="Sleep",
-            title="Sleep Hours"
-        )
-
-        st.plotly_chart(
-            fig3,
-            use_container_width=True
-        )
+    st.dataframe(df, use_container_width=True)
 
 # --------------------
-# DIGITAL TWIN
+# MY TWIN
 # --------------------
 
-elif page == "Digital Twin":
+elif page == "My Twin":
 
-    st.header("Build Your Twin")
+    st.header("Create Your Digital Twin")
 
-    study = st.slider(
-        "Study Hours",
-        0,
-        12,
-        6
-    )
+    name = st.text_input("Your Name")
 
-    sleep = st.slider(
-        "Sleep Hours",
-        0,
-        12,
-        8
-    )
+    study = st.slider("Study Hours", 0, 12, 6)
 
-    exercise = st.slider(
-        "Exercise Hours",
-        0,
-        5,
-        1
-    )
+    sleep = st.slider("Sleep Hours", 0, 12, 8)
 
-    mood = st.slider(
-        "Mood",
-        1,
-        10,
-        8
-    )
+    exercise = st.slider("Exercise Hours", 0, 5, 1)
+
+    mood = st.slider("Mood", 1, 10, 8)
+
+    screen = st.slider("Screen Time", 0, 15, 5)
 
     twin_score = (
-        study*4 +
-        sleep*4 +
-        exercise*8 +
-        mood*2
+        study * 4
+        + sleep * 4
+        + exercise * 8
+        + mood * 2
+        - screen
     )
 
-    if twin_score > 80:
-        status = "Elite"
-    elif twin_score > 60:
-        status = "Strong"
+    twin_score = max(0, min(100, twin_score))
+
+    st.progress(twin_score / 100)
+
+    st.success(f"{name}'s Twin Score: {twin_score}/100")
+
+    if twin_score >= 80:
+        st.info("Status: Elite Performer 🚀")
+    elif twin_score >= 60:
+        st.info("Status: Strong Growth 📈")
     else:
-        status = "Needs Improvement"
-
-    st.subheader("Twin Score")
-
-    st.progress(twin_score/100)
-
-    st.success(
-        f"Score: {twin_score}/100"
-    )
-
-    st.info(
-        f"Digital Twin Status: {status}"
-    )
+        st.info("Status: Needs Improvement ⚠️")
 
 # --------------------
-# PREDICTIONS
+# FUTURE SIMULATOR
 # --------------------
 
-elif page == "Predictions":
+elif page == "Future Simulator":
 
-    st.header("Future Forecast")
+    st.header("Future Prediction")
 
-    st.success(
-        """
-        Based on current habits,
-        TwinAI predicts a 14% increase
-        in productivity over the next week.
-        """
+    current = st.slider(
+        "Current Productivity",
+        0,
+        100,
+        75
     )
 
-    future = pd.DataFrame({
-        "Week":[
-            "Current",
-            "Next"
-        ],
-        "Productivity":[
-            88,
-            100
-        ]
-    })
-
-    fig = px.bar(
-        future,
-        x="Week",
-        y="Productivity"
+    improvement = st.slider(
+        "Expected Improvement %",
+        0,
+        50,
+        15
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
+    future = min(100, current + improvement)
+
+    st.metric(
+        "Predicted Future Productivity",
+        f"{future}%"
     )
+
+    st.progress(future / 100)
+
+    if future >= 90:
+        st.success(
+            "Your twin predicts exceptional performance."
+        )
+    elif future >= 75:
+        st.info(
+            "Your twin predicts strong future growth."
+        )
+    else:
+        st.warning(
+            "Your twin recommends improving daily habits."
+        )
